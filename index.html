@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Heart Shape with Speed Control</title>
+    <style>
+        body {
+            margin: 0;
+            overflow: hidden;
+            background-color: #000;
+        }
+        #heartCanvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+        }
+        #speedSliderContainer {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            width: 300px;
+        }
+        #speedSlider {
+            width: 100%;
+            height: 10px;
+            background-color: rgba(255, 255, 255, 0.3);
+            border-radius: 10px;
+            cursor: pointer;
+        }
+        #sliderValue {
+            position: absolute;
+            top: 25px;
+            left: 330px;
+            color: white;
+            font-size: 18px;
+        }
+    </style>
+</head>
+<body>
+
+<canvas id="heartCanvas"></canvas>
+<div id="speedSliderContainer">
+    <input type="range" id="speedSlider" min="0.01" max="0.1" step="0.001" value="0.02">
+    <div id="sliderValue">Speed: 0.02</div>
+</div>
+
+<script>
+const canvas = document.getElementById('heartCanvas');
+const ctx = canvas.getContext('2d');
+
+// Set canvas dimensions
+canvas.width = window.innerWidth;
+canvas.height = window.innerHeight;
+
+const centerX = canvas.width / 2;
+const centerY = canvas.height / 2;
+
+let k = 0; // Initial value of k for the equation
+
+// Function to calculate the y-coordinate based on the given equation
+function heartEquation(x, k) {
+    if (Math.abs(x) > Math.sqrt(3)) return null; // Outside the domain
+    const y = Math.pow(x, 1.5) + 0.9 * Math.sin(k * x) * Math.sqrt(3 - x ** 2);
+    return y;
+}
+
+// Draw the axes
+function drawAxes() {
+    ctx.strokeStyle = "rgba(255, 255, 255, 0.5)";
+    ctx.lineWidth = 1;
+
+    // X-axis
+    ctx.beginPath();
+    ctx.moveTo(0, centerY);
+    ctx.lineTo(canvas.width, centerY);
+    ctx.stroke();
+
+    // Y-axis
+    ctx.beginPath();
+    ctx.moveTo(centerX, 0);
+    ctx.lineTo(centerX, canvas.height);
+    ctx.stroke();
+}
+
+// Draw heart shape
+function drawHeart() {
+    ctx.beginPath();
+    for (let x = -Math.sqrt(3); x <= Math.sqrt(3); x += 0.01) {
+        const y = heartEquation(x, k);
+        if (y !== null) {
+            const screenX = centerX + x * 100; // Right side heart
+            const screenY = centerY - y * 100; // Scale y-coordinates
+            ctx.lineTo(screenX, screenY);
+        }
+    }
+
+    // Draw the left mirrored heart
+    for (let x = Math.sqrt(3); x >= -Math.sqrt(3); x -= 0.01) {
+        const y = heartEquation(x, k);
+        if (y !== null) {
+            const screenX = centerX - x * 100; // Left side heart (mirrored)
+            const screenY = centerY - y * 100; // Scale y-coordinates
+            ctx.lineTo(screenX, screenY);
+        }
+    }
+
+    ctx.strokeStyle = "red";
+    ctx.lineWidth = 2;
+    ctx.stroke();
+}
+
+// Function to update the speed based on the slider value
+const speedSlider = document.getElementById('speedSlider');
+const sliderValueDisplay = document.getElementById('sliderValue');
+
+// Event listener to update the speed
+speedSlider.addEventListener('input', function() {
+    const speed = speedSlider.value;
+    sliderValueDisplay.textContent = `Speed: ${speed}`;
+});
+
+// Animate the graph based on the value of k
+function animateGraph() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height); // Clear canvas
+
+    // Draw axes
+    drawAxes();
+
+    // Draw the heart shape
+    drawHeart();
+
+    // Increment k based on the slider speed
+    k += parseFloat(speedSlider.value); 
+
+    requestAnimationFrame(animateGraph);
+}
+
+// Start the animation
+animateGraph();
+</script>
+
+</body>
+</html>
